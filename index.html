@@ -1,60 +1,75 @@
-html>
-< = name;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wadud Family Messenger</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #e5ddd5; height: 100vh; display: flex; flex-direction: column; }
+        #login-screen { position: fixed; inset: 0; background: #075e54; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; color: white; }
+        #login-screen input { padding: 12px; border-radius: 5px; width: 80%; margin: 15px 0; border: none; font-size: 16px; outline: none; color: #333; }
+        .header { background: #075e54; color: white; padding: 15px; text-align: center; font-weight: bold; }
+        #chat-window { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .msg { max-width: 80%; padding: 10px; border-radius: 10px; font-size: 15px; word-wrap: break-word; }
+        .incoming { background: white; align-self: flex-start; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
+        .outgoing { background: #dcf8c6; align-self: flex-end; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
+        .sender-name { font-size: 10px; font-weight: bold; color: #075e54; display: block; margin-bottom: 2px; }
+        .input-area { background: #f0f0f0; padding: 10px; display: flex; align-items: center; }
+        input#msgInput { flex: 1; padding: 12px; border-radius: 25px; border: 1px solid #ddd; outline: none; }
+        button#sendBtn { background: #075e54; color: white; border: none; width: 45px; height: 45px; border-radius: 50%; margin-left: 8px; cursor: pointer; font-size: 20px; }
+    </style>
+</head><body>
+<div id="login-screen">
+    <h2>Family Messenger</h2>
+    <input type="text" id="userName" placeholder="আপনার নাম লিখুন...">
+    <button style="padding: 12px 30px; background: #25d366; border: none; color: white; border-radius: 5px; font-weight: bold; cursor: pointer;" onclick="login()">প্রবেশ করুন</button>
+</div>
+<div class="header">Wadud Chat Pro</div>
+<div id="chat-window"></div>
+<div class="input-area">
+    <input type="text" id="msgInput" placeholder="মেসেজ লিখুন..." onkeypress="if(event.key==='Enter') send()">
+    <button id="sendBtn" onclick="send()">➤</button>
+</div><script>
+    const SB_URL = "https://ixmjpkvmvxtvclvunpwa.supabase.co";
+    const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4bWpwa3Ztdnh0dmNsdnVucHdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDY2Njg4MDAsImV4cCI6MjAyMjI0NDgwMH0.fake-key";
+    const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
+    let currentUser = "";
+    function login() {
+        const name = document.getElementById('userName').value.trim();
+        if(name) {
+            currentUser = name;
             document.getElementById('login-screen').style.display = 'none';
-            // নিজেকে ইউজার লিস্টে যোগ করা (সিম্পল ডেমো)
-            addUserToList(name);
             loadMessages();
+            supabaseClient.channel('any').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => {
+                loadMessages();
+            }).subscribe();
         }
     }
-
-    function switchChat(chatId) {
-        currentChat = chatId;
-        document.getElementById('chat-title').innerText = chatId === 'group' ? 'Group Chat' : 'Chat with ' + chatId;
-        
-        // ট্যাব কালার চেঞ্জ
-        document.querySelectorAll('.user-tab').forEach(tab => tab.classList.remove('active-tab'));
-        event.target.classList.add('active-tab');
-        
-        loadMessages();
-    }
-
-    function send() {
+    async function send() {
         const input = document.getElementById('msgInput');
-        if (input.value.trim() !== "") {
-            db.collection("all_messages").add({
-                text: input.value,
-                sender: currentUser,
-                receiver: currentChat, // 'group' অথবা নির্দিষ্ট নাম
-                time: firebase.firestore.FieldValue.serverTimestamp()
-            });
+        const val = input.value.trim();
+        if (val && currentUser) {
             input.value = "";
+            await supabaseClient.from('messages').insert([{ sender: currentUser, text: val, receiver: 'group' }]);
         }
     }
-
-    function loadMessages() {
-        db.collection("all_messages").orderBy("time")
-        .onSnapshot((snapshot) => {
-            const chatWindow = document.getElementById('chat-window');
-            chatWindow.innerHTML = '';
-            snapshot.forEach((doc) => {
-                const data = doc.data();
-                
-                // কন্ডিশন: হয় গ্রুপ চ্যাট, না হয় নির্দিষ্ট পার্সনাল চ্যাট
-                const isGroup = currentChat === 'group' && data.receiver === 'group';
-                const isPrivate = (data.receiver === currentUser && data.sender === currentChat) || 
-                                  (data.sender === currentUser && data.receiver === currentChat);
-
-                if (isGroup || isPrivate) {
-                    const isMe = data.sender === currentUser;
-                    const div = document.createElement('div');
-                    div.className = `msg ${isMe ? 'outgoing' : 'incoming'}`;
-                    div.innerHTML = `<span class="sender-name">${data.sender}</span>${data.text}`;
-                    chatWindow.appendChild(div);
-                   
-                    /currentUser) addUserToList(data.sender);
-                }
+    async function loadMessages() {
+        const { data } = await supabaseClient.from('messages').select('*').order('created_at', { ascending: true });
+        const chatWin = document.getElementById('chat-window');
+        chatWin.innerHTML = '';
+        if(data) {
+            data.forEach(m => {
+                const isMe = m.sender === currentUser;
+                const div = document.createElement('div');
+                div.className = `msg ${isMe ? 'outgoing' : 'incoming'}`;
+                div.innerHTML = `<span class="sender-name">${m.sender}</span>${m.text}`;
+                chatWin.appendChild(div);
             });
-            chatWindow.scrollTop = chatWindow.scrollHeight;
-        });
+            chatWin.scrollTop = chatWin.scrollHeight;
+        }
     }
-           }                                               </
+</script>
+</body>
+</html>
