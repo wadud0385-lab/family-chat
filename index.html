@@ -1,72 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Messenger Pro</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #e5ddd5; height: 100vh; display: flex; flex-direction: column; }
-        
-        /* Login Screen */
-        #login-screen { position: fixed; inset: 0; background: #075e54; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; color: white; }
-        #login-screen input { padding: 12px; border-radius: 5px; width: 80%; margin: 15px 0; border: none; }
-        
-        /* Chat Dashboard */
-        .header { background: #075e54; color: white; padding: 15px; text-align: center; }
-        #user-list { background: white; padding: 10px; display: flex; gap: 10px; overflow-x: auto; border-bottom: 1px solid #ddd; }
-        .user-tab { padding: 8px 15px; background: #eee; border-radius: 20px; cursor: pointer; white-space: nowrap; font-size: 14px; }
-        .active-tab { background: #25d366; color: white; }
-
-        /* Messages */
-        #chat-window { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; }
-        .msg { max-width: 75%; padding: 10px; border-radius: 10px; margin-bottom: 8px; font-size: 15px; line-height: 1.4; }
-        .incoming { background: white; align-self: flex-start; }
-        .outgoing { background: #dcf8c6; align-self: flex-end; }
-        .sender-name { font-size: 10px; font-weight: bold; display: block; color: #075e54; }
-
-        /* Input */
-        .input-area { background: #f0f0f0; padding: 10px; display: flex; }
-        input#msgInput { flex: 1; padding: 12px; border-radius: 25px; border: 1px solid #ddd; outline: none; }
-        button#sendBtn { background: #075e54; color: white; border: none; width: 45px; height: 45px; border-radius: 50%; margin-left: 8px; }
-    </style>
-</head>
-<body>
-
-<div id="login-screen">
-    <h2>Family Messenger</h2>
-    <input type="text" id="userName" placeholder="আপনার নাম (যেমন: Wadud)">
-    <button style="padding: 10px 20px; background: #25d366; border: none; border-radius: 5px; color: white;" onclick="login()">প্রবেশ করুন</button>
-</div>
-
-<div class="header" id="chat-title">Group Chat</div>
-
-<div id="user-list">
-    <div class="user-tab active-tab" onclick="switchChat('group')">Group Chat</div>
-</div>
-
-<div id="chat-window"></div>
-
-<div class="input-area">
-    <input type="text" id="msgInput" placeholder="মেসেজ লিখুন...">
-    <button id="sendBtn" onclick="send()">➤</button>
-</div>
-
-<script>
-    // Firebase Config (Demo)
-    const firebaseConfig = { projectId: "family-chat-demo" };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    let currentUser = "";
-    let currentChat = "group"; // ডিফল্ট গ্রুপ চ্যাট
-
-    function login() {
-        const name = document.getElementById('userName').value.trim();
-        if(name !== "") {
-            currentUser = name;
+html>
+< = name;
             document.getElementById('login-screen').style.display = 'none';
             // নিজেকে ইউজার লিস্টে যোগ করা (সিম্পল ডেমো)
             addUserToList(name);
@@ -117,28 +50,11 @@
                     div.className = `msg ${isMe ? 'outgoing' : 'incoming'}`;
                     div.innerHTML = `<span class="sender-name">${data.sender}</span>${data.text}`;
                     chatWindow.appendChild(div);
-                    
-                    // নতুন ইউজার পেলে লিস্টে যোগ করা (অটোমেটিক)
-                    if(data.sender !== currentUser) addUserToList(data.sender);
+                   
+                    /currentUser) addUserToList(data.sender);
                 }
             });
             chatWindow.scrollTop = chatWindow.scrollHeight;
         });
     }
-
-    let users = ['group'];
-    function addUserToList(name) {
-        if(!users.includes(name)) {
-            users.push(name);
-            const list = document.getElementById('user-list');
-            const tab = document.createElement('div');
-            tab.className = 'user-tab';
-            tab.innerText = name;
-            tab.onclick = () => switchChat(name);
-            list.appendChild(tab);
-        }
-    }
-</script>
-
-</body>
-</html>
+           }                                               </
